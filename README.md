@@ -1,11 +1,14 @@
 # ubiquitous-cube-game
 A Minecraft clone implementation in Python using modern OpenGL.
 
+<p align="center">
 <img src="app/assets/icon.png" alt="Ubiquitous Cube Game icon" width="25%"/>
 
 ![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
 ![OpenGL](https://img.shields.io/badge/OpenGL-%23FFFFFF.svg?style=for-the-badge&logo=opengl)
 ![NumPy](https://img.shields.io/badge/numpy-%23013243.svg?style=for-the-badge&logo=numpy&logoColor=white)
+
+</p>
 
 ## Project Goal
 
@@ -104,3 +107,13 @@ There is also ore generation within the cave systems:
 
 ![Example of ore being generated within the caves](/resources/images/cube-game-screenshot-02.jpg)
 
+## Credits
+
+The following was used to create the base game:
+
+- ![ModernGL](https://moderngl.readthedocs.io/en/5.8.2/)
+- ![OpenSimplex](https://github.com/lmas/opensimplex)
+- ![Numba](https://numba.pydata.org/)
+- ![Coder Space's Creating a Voxel Engine Tutorial](https://www.youtube.com/watch?v=Ab8TOSFfNp4)
+- ![Alan Zucconi's How Minecraft ACTUALLY Works](https://www.youtube.com/watch?v=YyVAaJqYAfE&t=973s)
+- ![David Wolff's OpenGL 4 Shading Language Cookbook](https://www.amazon.com/OpenGL-Shading-Language-Cookbook-high-quality/dp/1789342252)
