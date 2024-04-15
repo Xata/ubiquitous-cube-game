@@ -60,6 +60,7 @@ def set_voxel_id(voxels, x, y, z, wx, wy, wz, world_height):
     Set the voxel ID for terrain generation at the given local voxel coordinates.
     """
 
+    # TODO: Change this to use dictionary from block_type.py
     voxel_id = block_type.VOID
 
     if wy < world_height - 1:
