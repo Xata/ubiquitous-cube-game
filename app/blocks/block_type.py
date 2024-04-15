@@ -37,3 +37,5 @@ BLOCK_DICT = {0: 'VOID',
               13:'RAW_TIN_BLOCK', 
               14:'WOOD_BLOCK', 
               15:'BASIC_CRAFTING_TABLE'}
+
+
