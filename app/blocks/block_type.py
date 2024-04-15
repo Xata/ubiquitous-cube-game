@@ -19,6 +19,7 @@ RAW_TIN_BLOCK = 13
 WOOD_BLOCK = 14
 BASIC_CRAFTING_TABLE = 15
 
+# Block dictionary. The number is the Voxel ID and the string will be the text
 BLOCK_DICT = {0: 'VOID', 
               1: 'SAND', 
               2: 'GRASS', 
@@ -35,7 +36,3 @@ BLOCK_DICT = {0: 'VOID',
               13:'RAW_TIN_BLOCK', 
               14:'WOOD_BLOCK', 
               15:'BASIC_CRAFTING_TABLE'}
-
-
-
-
