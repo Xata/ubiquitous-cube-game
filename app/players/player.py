@@ -1,6 +1,7 @@
 import pygame
 from app.settings import *
 from app.graphics.camera import Camera
+from app.blocks.block_type import BLOCK_DICT
 
 
 class Player(Camera):
@@ -79,6 +80,9 @@ class Player(Camera):
                     self.selected_voxel += 1
                 else:
                     self.selected_voxel = 0
+                
+                # Print the selected block to the console
+                print(BLOCK_DICT.get(self.selected_voxel))
 
             # Right mouse button
             if event.button == 3:

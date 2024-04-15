@@ -1,5 +1,6 @@
 from app.settings import *
 from app.meshes.chunks.chunk_mesh_builder import get_chunk_index
+from app.blocks.block_type import BLOCK_DICT
 
 
 class VoxelHandler:
@@ -48,6 +49,7 @@ class VoxelHandler:
 
                 elif player_new_voxel_id is not None:
                     chunk.voxels[voxel_index] = player_new_voxel_id
+                    print(BLOCK_DICT.get(player_new_voxel_id))
                     chunk.mesh.rebuild()
 
                 if chunk.is_empty:

@@ -9,6 +9,7 @@ import opensimplex
 # Initialize permutation tables for noise generation using the seed
 perm, perm_grad_index3 = _init(seed=SEED)
 
+#perm, perm_grad_index3 = opensimplex.seed(SEED)
 
 @njit(cache=True)
 def noise2(x, y):
@@ -22,6 +23,7 @@ def noise2(x, y):
     Returns:
         float: Simplex noise value at the specified coordinates
     """
+
     return _noise2(x, y, perm)
 
 

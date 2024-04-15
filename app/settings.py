@@ -6,8 +6,8 @@ import glm
 import math
 
 # Window resolution
-WINDOW_WIDTH = 1280
-WINDOW_HEIGHT = 720
+WINDOW_WIDTH = 1600
+WINDOW_HEIGHT = 900
 WINDOW_RESOLUTION = glm.vec2(WINDOW_WIDTH, WINDOW_HEIGHT)
 
 # World generation

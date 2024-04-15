@@ -19,4 +19,21 @@ RAW_TIN_BLOCK = 13
 WOOD_BLOCK = 14
 BASIC_CRAFTING_TABLE = 15
 
+BLOCK_DICT = {0: 'VOID', 
+              1: 'SAND', 
+              2: 'GRASS', 
+              3:'DIRT', 
+              4:'STONE', 
+              5:'SNOW', 
+              6:'LEAVES', 
+              7:'WOOD', 
+              8:'COAL_ORE', 
+              9:'RAW_COAL_BLOCK', 
+              10:'COPPER_ORE', 
+              11:'RAW_COPPER_BLOCK', 
+              12:'TIN_ORE', 
+              13:'RAW_TIN_BLOCK', 
+              14:'WOOD_BLOCK', 
+              15:'BASIC_CRAFTING_TABLE'}
+
 
