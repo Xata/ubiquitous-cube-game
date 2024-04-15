@@ -20,6 +20,7 @@ WOOD_BLOCK = 14
 BASIC_CRAFTING_TABLE = 15
 
 # Block dictionary. The number is the Voxel ID and the string will be the text
+# TODO: Implement this as the basis for selecting a block type
 BLOCK_DICT = {0: 'VOID', 
               1: 'SAND', 
               2: 'GRASS', 
