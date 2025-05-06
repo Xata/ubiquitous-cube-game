@@ -17,7 +17,7 @@ The goal of this project is to create a multiplayer Minecraft clone written in P
 ## Installation
 
 Requirements:
-- 🐍 Python 3.11+ installed
+- 🐍 Python 3.13+ installed
 - ⚙️ GPU capable of OpenGL 3.3+
 
 Next, clone the repository to your local machine:
