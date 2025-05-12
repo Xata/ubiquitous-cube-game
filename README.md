@@ -115,5 +115,5 @@ The following was used to create the base game:
 - ![OpenSimplex](https://github.com/lmas/opensimplex)
 - ![Numba](https://numba.pydata.org/)
 - ![David Wolff's OpenGL 4 Shading Language Cookbook](https://www.amazon.com/OpenGL-Shading-Language-Cookbook-high-quality/dp/1789342252)
-- ![Coder Space's Creating a Voxel Engine Tutorial](https://www.youtube.com/watch?v=Ab8TOSFfNp4)
+- ![Coder Space's Creating a Voxel Engine Tutorial](https://www.youtube.com/watch?v=Ab8TOSFfNp4) (For the trees)
 - ![Alan Zucconi's How Minecraft ACTUALLY Works](https://www.youtube.com/watch?v=YyVAaJqYAfE&t=973s)
