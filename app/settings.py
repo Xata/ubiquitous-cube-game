@@ -15,7 +15,7 @@ SEED = random.randrange(1, 1000000)
 print(SEED)
 
 # FPS
-MAX_FPS = 1000
+MAX_FPS = 120
 
 # Game title
 GAME_TITLE = "Ubiquitous Cube Game"
