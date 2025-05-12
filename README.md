@@ -12,12 +12,12 @@ A Minecraft clone implementation in Python using modern OpenGL.
 
 ## Project Goal
 
-The goal of this project is to create a multiplayer Minecraft clone written in Python that can run on Windows 11 and macOS.
+The goal of this project is to create a simple Minecraft clone written in Python that can run on Windows 11 and macOS.
 
 ## Installation
 
 Requirements:
-- 🐍 Python 3.13+ installed
+- 🐍 Python 3.13+ installed (As of May 2025)
 - ⚙️ GPU capable of OpenGL 3.3+
 
 Next, clone the repository to your local machine:
@@ -96,10 +96,10 @@ The current blocks that are placeable are:
 | RAW_COAL_BLOCK       | 9        |
 | COPPER_ORE           | 10       |
 | RAW_COPPER_BLOCK     | 11       | 
-| TIN_ORE              | 12 |       
-| RAW_TIN_BLOCK        | 13 |       
-| WOOD_BLOCK           | 14    |   
-| BASIC_CRAFTING_TABLE | 15    |
+| TIN_ORE              | 12       |       
+| RAW_TIN_BLOCK        | 13       |       
+| WOOD_BLOCK           | 14       |   
+| BASIC_CRAFTING_TABLE | 15       |
 
 Generates a random world each time using ![OpenSimplex](https://github.com/lmas/opensimplex)
 
@@ -114,6 +114,6 @@ The following was used to create the base game:
 - ![ModernGL](https://moderngl.readthedocs.io/en/5.8.2/)
 - ![OpenSimplex](https://github.com/lmas/opensimplex)
 - ![Numba](https://numba.pydata.org/)
+- ![David Wolff's OpenGL 4 Shading Language Cookbook](https://www.amazon.com/OpenGL-Shading-Language-Cookbook-high-quality/dp/1789342252)
 - ![Coder Space's Creating a Voxel Engine Tutorial](https://www.youtube.com/watch?v=Ab8TOSFfNp4)
 - ![Alan Zucconi's How Minecraft ACTUALLY Works](https://www.youtube.com/watch?v=YyVAaJqYAfE&t=973s)
-- ![David Wolff's OpenGL 4 Shading Language Cookbook](https://www.amazon.com/OpenGL-Shading-Language-Cookbook-high-quality/dp/1789342252)
