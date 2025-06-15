@@ -12,7 +12,7 @@ A Minecraft clone implementation in Python using modern OpenGL.
 
 ## Project Goal
 
-The goal of this project is to create a multiplayer Minecraft clone written in Python that can run on Windows 11 and macOS.
+The goal of this project is to create a 3D tech demo that is reminiscent of Minecraft written in Python that can run on Windows 11 and macOS.
 
 ## Installation
 

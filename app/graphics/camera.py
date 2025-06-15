@@ -91,7 +91,6 @@ class Camera:
     def move_backward(self, velocity):
         self.position -= self.forward * velocity
 
-
 class Frustum:
     """
     Represents a frustum for culling objects in the camera's view volume.

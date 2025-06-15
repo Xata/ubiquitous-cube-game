@@ -4,7 +4,7 @@
 layout (location = 0) out vec4 fogColor;
 
 // Gamma correction constants
-const vec3 gamma = vec3(2.2);
+const vec3 gamma = vec3(2.0);
 const vec3 inv_gamma = 1 / gamma;
 
 // Uniforms

@@ -34,6 +34,11 @@ class Player(Camera):
         # Init placement voxel
         self.selected_voxel = 0
 
+        # Player states
+        self.is_jumping = 0
+        self.is_moving = 0
+        self.turning = 0
+
     def init_voxel_handler(self):
         # Voxel handler
         self.player_voxel_handler = self.app.scene.world.voxel_handler
@@ -88,6 +93,7 @@ class Player(Camera):
             if event.button == 3:
                 voxel_handler.switch_mode()
 
+
     def handle_mouse(self):
         """
         Handles mouse movement to adjust player's view.
@@ -118,3 +124,5 @@ class Player(Camera):
             self.move_up(player_velocity)
         if key_state[pygame.K_e]:
             self.move_down(player_velocity)
+
+        
