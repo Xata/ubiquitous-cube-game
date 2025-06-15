@@ -25,6 +25,7 @@ class Game:
         icon_img = pygame.image.load("app/assets/icon.png")
 
         # Set the OpenGL version to 3.3 and prevent use of deprecated features
+        # Max OpenGL version on macOS is 4.1
         pygame.display.gl_set_attribute(pygame.GL_CONTEXT_MAJOR_VERSION, 3)
         pygame.display.gl_set_attribute(pygame.GL_CONTEXT_MINOR_VERSION, 3)
         pygame.display.gl_set_attribute(pygame.GL_CONTEXT_PROFILE_MASK, pygame.GL_CONTEXT_PROFILE_CORE)
