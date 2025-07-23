@@ -103,7 +103,7 @@ The current blocks that are placeable are:
 
 Generates a random world each time using ![OpenSimplex](https://github.com/lmas/opensimplex)
 
-There is also ore generation within the cave systems:
+There is also ore generation within the cave systems (its very random though):
 
 ![Example of ore being generated within the caves](/resources/images/cube-game-screenshot-02.jpg)
 
