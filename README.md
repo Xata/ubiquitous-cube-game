@@ -62,18 +62,21 @@ The current controls are:
 
 | Key | Action |
 |------|--------|
-| W | Move Forward |
-| S | Move Backward |
-| A | Move Left |
-| D | Move Right |
-| Q | Move Up |
-| E | Move Down |
-| Left Mouse Btn | Block Action |
-| Right Mouse Btn | Change block Action |
-| Middle Mouse Btn | Change active block to place |
+| W | Move forward |
+| S | Move backward |
+| A | Move left |
+| D | Move right |
+| Q | Move dp |
+| E | Move down |
+| Left Mouse Btn | Block action |
+| Right Mouse Btn | Change block action |
+| Middle Mouse Btn | Change active block to action |
+| P | Change block action |
+| - | Change selected block to action |
+| + | Change selected block to action |
 | ESC | Exit |
 
-Note: To change the block you need to place press the middle mouse button. The selected block will be printed in the console.
+Note: To change the block you need to place press the middle mouse button (or -/+). The selected block will be printed in the console.
 
 ### Available blocks
 The blocks below are defined in app.blocks.block_type.py!
@@ -96,10 +99,10 @@ The current blocks that are placeable are:
 | RAW_COAL_BLOCK       | 9        |
 | COPPER_ORE           | 10       |
 | RAW_COPPER_BLOCK     | 11       | 
-| TIN_ORE              | 12 |       
-| RAW_TIN_BLOCK        | 13 |       
-| WOOD_BLOCK           | 14    |   
-| BASIC_CRAFTING_TABLE | 15    |
+| TIN_ORE              | 12       |       
+| RAW_TIN_BLOCK        | 13       |       
+| WOOD_BLOCK           | 14       |   
+| BASIC_CRAFTING_TABLE | 15       |
 
 Generates a random world each time using ![OpenSimplex](https://github.com/lmas/opensimplex)
 
@@ -109,7 +112,7 @@ There is also ore generation within the cave systems (its very random though):
 
 ## Credits
 
-The following was used to create the base game:
+The following was used to create the base demo:
 
 - ![ModernGL](https://moderngl.readthedocs.io/en/5.8.2/)
 - ![OpenSimplex](https://github.com/lmas/opensimplex)

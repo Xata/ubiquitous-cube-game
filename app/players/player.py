@@ -80,8 +80,7 @@ class Player(Camera):
 
             # Middle mouse button
             if event.button == 2:
-                # Change the 15 when adding a block type to app.blocks.block_type.py:
-                if self.selected_voxel < 15:
+                if self.selected_voxel < TOTAL_BLOCKS:
                     self.selected_voxel += 1
                 else:
                     self.selected_voxel = 0
@@ -92,7 +91,6 @@ class Player(Camera):
             # Right mouse button
             if event.button == 3:
                 voxel_handler.switch_mode()
-
 
     def handle_mouse(self):
         """
@@ -110,19 +108,35 @@ class Player(Camera):
         Handles keyboard input to control player movement.
         """
 
+        voxel_handler = self.app.scene.world.voxel_handler
+
         key_state = pygame.key.get_pressed()
         player_velocity = PLAYER_SPEED * self.app.delta_time
         if key_state[pygame.K_w]:
             self.move_forward(player_velocity)
-        if key_state[pygame.K_s]:
+        elif key_state[pygame.K_s]:
             self.move_backward(player_velocity)
-        if key_state[pygame.K_a]:
+        elif key_state[pygame.K_a]:
             self.move_left(player_velocity)
-        if key_state[pygame.K_d]:
+        elif key_state[pygame.K_d]:
             self.move_right(player_velocity)
-        if key_state[pygame.K_q]:
+        elif key_state[pygame.K_q]:
             self.move_up(player_velocity)
-        if key_state[pygame.K_e]:
+        elif key_state[pygame.K_e]:
             self.move_down(player_velocity)
+        elif key_state[pygame.K_MINUS]:
+            if self.selected_voxel > 0:
+                self.selected_voxel -= 1
+            else:
+                self.selected_voxel = TOTAL_BLOCKS
+            print(BLOCK_DICT.get(self.selected_voxel))
+        elif key_state[pygame.K_PLUS]:
+            if self.selected_voxel < TOTAL_BLOCKS:
+                self.selected_voxel += 1
+            else:
+                self.selected_voxel = 0
+            print(BLOCK_DICT.get(self.selected_voxel))
+        elif key_state[pygame.K_p]:
+            voxel_handler.switch_mode()
 
         

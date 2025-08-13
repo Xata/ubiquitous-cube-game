@@ -121,6 +121,12 @@ class Game:
         """
         Runs the main game loop.
         """
+        # Print instructions
+        print("CONTROLS:\n")
+        print("Movement: WASD and QE")
+        print("Place/delete a block: Left Mouse Button")
+        print("Switch between placement and deletion modes: Right Mouse Button or p")
+        print("Change your block: Middle Mouse Button or - or +")
 
         # Main game loop
         while self.is_running:
