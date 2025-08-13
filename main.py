@@ -1,6 +1,5 @@
 from app.game import *
 
-
 def main():
     """
     Main entry point for the game.
@@ -9,7 +8,6 @@ def main():
     """
     main_app = Game()
     main_app.run()
-
 
 if __name__ == '__main__':
     main()

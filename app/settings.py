@@ -11,7 +11,7 @@ WINDOW_HEIGHT = 900
 WINDOW_RESOLUTION = glm.vec2(WINDOW_WIDTH, WINDOW_HEIGHT)
 
 # World generation
-SEED = random.randrange(1, 1000000)
+SEED = random.randrange(1, 10000)
 print(SEED)
 
 # FPS
