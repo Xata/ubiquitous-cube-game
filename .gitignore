@@ -2,6 +2,9 @@
 notes/
 *.test
 
+# Application logs
+logs/
+
 # macOS
 .DS_Store
 .AppleDouble
