@@ -55,6 +55,14 @@ def get_index(x, y, z):
 
 
 @njit
+def set_water(voxels, x, y, z):
+    """
+    Set a water block at the given local coordinates.
+    """
+    voxels[get_index(x, y, z)] = 16  # WATER block ID
+
+
+@njit
 def set_voxel_id(voxels, x, y, z, wx, wy, wz, world_height):
     """
     Set the voxel ID for terrain generation at the given local voxel coordinates.

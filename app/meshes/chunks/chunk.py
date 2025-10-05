@@ -117,7 +117,12 @@ class Chunk:
                 world_height = terrain_gen.get_height(wx, wz)
                 local_height = int(min(world_height - cy, CHUNK_SIZE))
 
-                for y in range(local_height):
+                for y in range(CHUNK_SIZE):
                     wy = y + cy
-                    # voxels[x + CHUNK_SIZE * z + CHUNK_AREA * y] = 2
-                    terrain_gen.set_voxel_id(voxels, x, y, z, wx, wy, wz, world_height)
+
+                    # Generate terrain blocks
+                    if wy < world_height:
+                        terrain_gen.set_voxel_id(voxels, x, y, z, wx, wy, wz, world_height)
+                    # Fill with water if above terrain and below water level
+                    elif wy < WATER_LVL:
+                        terrain_gen.set_water(voxels, x, y, z)

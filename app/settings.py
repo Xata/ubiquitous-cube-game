@@ -77,6 +77,7 @@ STONE_LVL = 48
 DIRT_LVL = 42
 GRASS_LVL = 30
 SAND_LVL = 20
+WATER_LVL = 32  # Sea level - valleys below this fill with water
 
 # Block settings
 TOTAL_BLOCKS = 16
