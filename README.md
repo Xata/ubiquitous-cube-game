@@ -75,6 +75,7 @@ The current controls are:
 | - | Change selected block to action |
 | + | Change selected block to action |
 | ESC | Exit |
+| B | Enable or Disable block preview | 
 
 Note: To change the block you need to place press the middle mouse button (or -/+). The selected block will be printed in the console.
 
