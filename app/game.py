@@ -2,6 +2,7 @@ from app.settings import *
 import moderngl
 import pygame
 import sys
+import math
 
 from app.graphics.shader_program import ShaderProgram
 from app.graphics.scene import Scene
@@ -37,8 +38,12 @@ class Game:
         pygame.display.set_mode(WINDOW_RESOLUTION, flags=pygame.OPENGL | pygame.DOUBLEBUF)
         self.ctx = moderngl.create_context()
 
-        # Activate fragment depth tests, culling of invisible faces, and color blending
-        self.ctx.enable(flags=moderngl.DEPTH_TEST | moderngl.CULL_FACE | moderngl.BLEND)
+        # Activate fragment depth tests and color blending
+        # Note: Face culling disabled to fix transparency rendering issues with water
+        self.ctx.enable(flags=moderngl.DEPTH_TEST | moderngl.BLEND)
+
+        # Set blend function for proper transparency (src_alpha, one_minus_src_alpha)
+        self.ctx.blend_func = moderngl.SRC_ALPHA, moderngl.ONE_MINUS_SRC_ALPHA
 
         # Turn on garbage collection of unused OpenGL objects
         self.ctx.gc_mode = "auto"
@@ -48,9 +53,16 @@ class Game:
         self.delta_time = 0
         self.time = 0
 
-        # Grab the mouse
-        pygame.event.set_grab(True)
+        # Grab the mouse and enable relative mode (better for macOS)
         pygame.mouse.set_visible(False)
+        pygame.event.set_grab(True)
+        try:
+            # Try to enable relative mouse mode (SDL2 feature, better mouse locking)
+            pygame.mouse.set_relative_mode(True)
+        except:
+            # Fallback for older pygame versions
+            pass
+        pygame.mouse.get_rel()  # Clear any initial movement
 
         # Set the icon of the game
         pygame.display.set_icon(icon_img)
@@ -102,7 +114,38 @@ class Game:
 
         self.ctx.clear(color=BG_COLOR)
         self.scene.render()
+
+        # Render debug info
+        self.render_debug_info()
+
         pygame.display.flip()
+
+    def render_debug_info(self):
+        """
+        Renders debug information to console (simple approach for OpenGL).
+        """
+        yaw_degrees = math.degrees(self.player.yaw) % 360
+        pitch_degrees = math.degrees(self.player.pitch)
+
+        # Determine cardinal direction
+        if 45 <= yaw_degrees < 135:
+            direction = "East"
+        elif 135 <= yaw_degrees < 225:
+            direction = "South"
+        elif 225 <= yaw_degrees < 315:
+            direction = "West"
+        else:
+            direction = "North"
+
+        # Print to console every 30 frames to avoid spam
+        if not hasattr(self, '_debug_frame_count'):
+            self._debug_frame_count = 0
+
+        self._debug_frame_count += 1
+        if self._debug_frame_count % 30 == 0:
+            print(f"Pos: ({self.player.position.x:.1f}, {self.player.position.y:.1f}, {self.player.position.z:.1f}) | "
+                  f"Facing: {direction} (Yaw: {yaw_degrees:.1f}°, Pitch: {pitch_degrees:.1f}°) | "
+                  f"FPS: {self.clock.get_fps():.0f} | Ground: {self.player.on_ground}")
 
     def handle_events(self):
         """

@@ -128,9 +128,9 @@ def get_chunk_index(world_voxel_pos):
 
 
 @njit
-def is_void(local_voxel_pos, world_voxel_pos, world_voxels):
+def get_voxel_id_at(local_voxel_pos, world_voxel_pos, world_voxels):
     """
-    Checks if a voxel position is empty (void) within the world.
+    Gets the voxel ID at a given position.
 
     Args:
         local_voxel_pos (tuple): Local position of the voxel within its chunk
@@ -138,21 +138,69 @@ def is_void(local_voxel_pos, world_voxel_pos, world_voxels):
         world_voxels (numpy.array): Array containing voxel data for the entire world
 
     Returns:
-        bool: True if the voxel position is empty, False otherwise
+        int: Voxel ID at the position, or 0 if out of bounds
     """
 
     chunk_index = get_chunk_index(world_voxel_pos)
     if chunk_index == -1:
-        return False
+        return 0
     chunk_voxels = world_voxels[chunk_index]
 
     x, y, z = local_voxel_pos
     voxel_index = x % CHUNK_SIZE + z % CHUNK_SIZE * CHUNK_SIZE + y % CHUNK_SIZE * CHUNK_AREA
 
-    if chunk_voxels[voxel_index]:
-        return False
-    else:
+    return chunk_voxels[voxel_index]
+
+@njit
+def is_void(local_voxel_pos, world_voxel_pos, world_voxels):
+    """
+    Checks if a voxel position is empty (void) or transparent within the world.
+
+    Args:
+        local_voxel_pos (tuple): Local position of the voxel within its chunk
+        world_voxel_pos (tuple): World position of the voxel
+        world_voxels (numpy.array): Array containing voxel data for the entire world
+
+    Returns:
+        bool: True if the voxel position is empty or transparent, False otherwise
+    """
+
+    voxel_id = get_voxel_id_at(local_voxel_pos, world_voxel_pos, world_voxels)
+
+    # Empty voxels are void
+    if voxel_id == 0:
         return True
+    else:
+        return False
+
+@njit
+def should_render_face(current_voxel_id, neighbor_voxel_id):
+    """
+    Determines if a face should be rendered between two voxels.
+
+    Args:
+        current_voxel_id: ID of the current voxel
+        neighbor_voxel_id: ID of the neighboring voxel
+
+    Returns:
+        bool: True if face should be rendered
+    """
+
+    # Don't render face if both are the same block type
+    if current_voxel_id == neighbor_voxel_id:
+        return False
+
+    # Always render if neighbor is void (air)
+    if neighbor_voxel_id == 0:
+        return True
+
+    # Water is transparent - always render faces adjacent to it
+    # This includes: water->solid and solid->water
+    if current_voxel_id == 16 or neighbor_voxel_id == 16:
+        return True
+
+    # Don't render between two different solid blocks
+    return False
 
 
 # @njit
@@ -187,6 +235,7 @@ def add_data(vertex_data, index, *vertices):
 def build_chunk_mesh(chunk_voxels, format_size, chunk_pos, world_voxels):
     """
     Builds the mesh data for a chunk based on its voxel data.
+    Returns separate arrays for solid and transparent geometry.
 
     Args:
         chunk_voxels (numpy.array): Voxel data for the chunk
@@ -195,7 +244,7 @@ def build_chunk_mesh(chunk_voxels, format_size, chunk_pos, world_voxels):
         world_voxels (numpy.array): Voxel data for the entire world
 
     Returns:
-        numpy.array: Mesh data for the chunk
+        tuple: (solid_mesh_data, transparent_mesh_data) - Two numpy arrays
     """
 
     # ARRAY_SIZE = CHUNK_VOL * NUM_VOXEL_VERTICES * VERTEX_ATTRS
@@ -204,8 +253,10 @@ def build_chunk_mesh(chunk_voxels, format_size, chunk_pos, world_voxels):
     # Each vertex has at least 5 attributes (this is format_size)
     # 1) x position 2) y position 3) z position 4) voxel_id 5) face_id
     # Change dtype from uint32 to uint8 if using non-packed data!
-    vertex_data = numpy.empty(CHUNK_VOL * 18 * format_size, dtype='uint32')
-    index = 0
+    solid_data = numpy.empty(CHUNK_VOL * 18 * format_size, dtype='uint32')
+    transparent_data = numpy.empty(CHUNK_VOL * 18 * format_size, dtype='uint32')
+    solid_index = 0
+    transparent_index = 0
 
     for x in range(CHUNK_SIZE):
         for y in range(CHUNK_SIZE):
@@ -221,7 +272,8 @@ def build_chunk_mesh(chunk_voxels, format_size, chunk_pos, world_voxels):
                 wz = z + cz * CHUNK_SIZE
 
                 # Top Face
-                if is_void((x, y + 1, z), (wx, wy + 1, wz), world_voxels):
+                neighbor_id = get_voxel_id_at((x, y + 1, z), (wx, wy + 1, wz), world_voxels)
+                if should_render_face(voxel_id, neighbor_id):
                     # Get ambient occlusion values
                     ao_id = get_ambient_occlusion_value((x, y + 1, z), (wx, wy + 1, wz), world_voxels, plane='Y')
 
@@ -234,13 +286,20 @@ def build_chunk_mesh(chunk_voxels, format_size, chunk_pos, world_voxels):
                     v2 = pack_data(x + 1, y + 1, z + 1, voxel_id, 0, ao_id[2], flip_id)
                     v3 = pack_data(x, y + 1, z + 1, voxel_id, 0, ao_id[3], flip_id)
 
-                    if flip_id:
-                        index = add_data(vertex_data, index, v1, v0, v3, v1, v3, v2)
-                    else:
-                        index = add_data(vertex_data, index, v0, v3, v2, v0, v2, v1)
+                    if voxel_id == 16:  # Water - transparent
+                        if flip_id:
+                            transparent_index = add_data(transparent_data, transparent_index, v1, v0, v3, v1, v3, v2)
+                        else:
+                            transparent_index = add_data(transparent_data, transparent_index, v0, v3, v2, v0, v2, v1)
+                    else:  # Solid blocks
+                        if flip_id:
+                            solid_index = add_data(solid_data, solid_index, v1, v0, v3, v1, v3, v2)
+                        else:
+                            solid_index = add_data(solid_data, solid_index, v0, v3, v2, v0, v2, v1)
 
                 # Bottom Face
-                if is_void((x, y - 1, z), (wx, wy - 1, wz), world_voxels):
+                neighbor_id = get_voxel_id_at((x, y - 1, z), (wx, wy - 1, wz), world_voxels)
+                if should_render_face(voxel_id, neighbor_id):
                     # Get ambient occlusion values
                     ao_id = get_ambient_occlusion_value((x, y - 1, z), (wx, wy - 1, wz), world_voxels, plane='Y')
 
@@ -251,13 +310,20 @@ def build_chunk_mesh(chunk_voxels, format_size, chunk_pos, world_voxels):
                     v2 = pack_data(x + 1, y, z + 1, voxel_id, 1, ao_id[2], flip_id)
                     v3 = pack_data(x, y, z + 1, voxel_id, 1, ao_id[3], flip_id)
 
-                    if flip_id:
-                        index = add_data(vertex_data, index, v1, v3, v0, v1, v2, v3)
-                    else:
-                        index = add_data(vertex_data, index, v0, v2, v3, v0, v1, v2)
+                    if voxel_id == 16:  # Water - transparent
+                        if flip_id:
+                            transparent_index = add_data(transparent_data, transparent_index, v1, v3, v0, v1, v2, v3)
+                        else:
+                            transparent_index = add_data(transparent_data, transparent_index, v0, v2, v3, v0, v1, v2)
+                    else:  # Solid blocks
+                        if flip_id:
+                            solid_index = add_data(solid_data, solid_index, v1, v3, v0, v1, v2, v3)
+                        else:
+                            solid_index = add_data(solid_data, solid_index, v0, v2, v3, v0, v1, v2)
 
                 # Right Face
-                if is_void((x + 1, y, z), (wx + 1, wy, wz), world_voxels):
+                neighbor_id = get_voxel_id_at((x + 1, y, z), (wx + 1, wy, wz), world_voxels)
+                if should_render_face(voxel_id, neighbor_id):
                     ao_id = get_ambient_occlusion_value((x + 1, y, z), (wx + 1, wy, wz), world_voxels, plane='X')
 
                     flip_id = ao_id[1] + ao_id[3] > ao_id[0] + ao_id[2]
@@ -267,13 +333,20 @@ def build_chunk_mesh(chunk_voxels, format_size, chunk_pos, world_voxels):
                     v2 = pack_data(x + 1, y + 1, z + 1, voxel_id, 2, ao_id[2], flip_id)
                     v3 = pack_data(x + 1, y, z + 1, voxel_id, 2, ao_id[3], flip_id)
 
-                    if flip_id:
-                        index = add_data(vertex_data, index, v3, v0, v1, v3, v1, v2)
-                    else:
-                        index = add_data(vertex_data, index, v0, v1, v2, v0, v2, v3)
+                    if voxel_id == 16:  # Water - transparent
+                        if flip_id:
+                            transparent_index = add_data(transparent_data, transparent_index, v3, v0, v1, v3, v1, v2)
+                        else:
+                            transparent_index = add_data(transparent_data, transparent_index, v0, v1, v2, v0, v2, v3)
+                    else:  # Solid blocks
+                        if flip_id:
+                            solid_index = add_data(solid_data, solid_index, v3, v0, v1, v3, v1, v2)
+                        else:
+                            solid_index = add_data(solid_data, solid_index, v0, v1, v2, v0, v2, v3)
 
                 # Left Face
-                if is_void((x - 1, y, z), (wx - 1, wy, wz), world_voxels):
+                neighbor_id = get_voxel_id_at((x - 1, y, z), (wx - 1, wy, wz), world_voxels)
+                if should_render_face(voxel_id, neighbor_id):
                     ao_id = get_ambient_occlusion_value((x - 1, y, z), (wx - 1, wy, wz), world_voxels, plane='X')
 
                     flip_id = ao_id[1] + ao_id[3] > ao_id[0] + ao_id[2]
@@ -283,13 +356,20 @@ def build_chunk_mesh(chunk_voxels, format_size, chunk_pos, world_voxels):
                     v2 = pack_data(x, y + 1, z + 1, voxel_id, 3, ao_id[2], flip_id)
                     v3 = pack_data(x, y, z + 1, voxel_id, 3, ao_id[3], flip_id)
 
-                    if flip_id:
-                        index = add_data(vertex_data, index, v3, v1, v0, v3, v2, v1)
-                    else:
-                        index = add_data(vertex_data, index, v0, v2, v1, v0, v3, v2)
+                    if voxel_id == 16:  # Water - transparent
+                        if flip_id:
+                            transparent_index = add_data(transparent_data, transparent_index, v3, v1, v0, v3, v2, v1)
+                        else:
+                            transparent_index = add_data(transparent_data, transparent_index, v0, v2, v1, v0, v3, v2)
+                    else:  # Solid blocks
+                        if flip_id:
+                            solid_index = add_data(solid_data, solid_index, v3, v1, v0, v3, v2, v1)
+                        else:
+                            solid_index = add_data(solid_data, solid_index, v0, v2, v1, v0, v3, v2)
 
                 # Back Face
-                if is_void((x, y, z - 1), (wx, wy, wz - 1), world_voxels):
+                neighbor_id = get_voxel_id_at((x, y, z - 1), (wx, wy, wz - 1), world_voxels)
+                if should_render_face(voxel_id, neighbor_id):
                     ao_id = get_ambient_occlusion_value((x, y, z - 1), (wx, wy, wz - 1), world_voxels, plane='Z')
 
                     flip_id = ao_id[1] + ao_id[3] > ao_id[0] + ao_id[2]
@@ -299,13 +379,20 @@ def build_chunk_mesh(chunk_voxels, format_size, chunk_pos, world_voxels):
                     v2 = pack_data(x + 1, y + 1, z, voxel_id, 4, ao_id[2], flip_id)
                     v3 = pack_data(x + 1, y, z, voxel_id, 4, ao_id[3], flip_id)
 
-                    if flip_id:
-                        index = add_data(vertex_data, index, v3, v0, v1, v3, v1, v2)
-                    else:
-                        index = add_data(vertex_data, index, v0, v1, v2, v0, v2, v3)
+                    if voxel_id == 16:  # Water - transparent
+                        if flip_id:
+                            transparent_index = add_data(transparent_data, transparent_index, v3, v0, v1, v3, v1, v2)
+                        else:
+                            transparent_index = add_data(transparent_data, transparent_index, v0, v1, v2, v0, v2, v3)
+                    else:  # Solid blocks
+                        if flip_id:
+                            solid_index = add_data(solid_data, solid_index, v3, v0, v1, v3, v1, v2)
+                        else:
+                            solid_index = add_data(solid_data, solid_index, v0, v1, v2, v0, v2, v3)
 
                 # Front Face
-                if is_void((x, y, z + 1), (wx, wy, wz + 1), world_voxels):
+                neighbor_id = get_voxel_id_at((x, y, z + 1), (wx, wy, wz + 1), world_voxels)
+                if should_render_face(voxel_id, neighbor_id):
                     ao_id = get_ambient_occlusion_value((x, y, z + 1), (wx, wy, wz + 1), world_voxels, plane='Z')
 
                     flip_id = ao_id[1] + ao_id[3] > ao_id[0] + ao_id[2]
@@ -315,10 +402,16 @@ def build_chunk_mesh(chunk_voxels, format_size, chunk_pos, world_voxels):
                     v2 = pack_data(x + 1, y + 1, z + 1, voxel_id, 5, ao_id[2], flip_id)
                     v3 = pack_data(x + 1, y, z + 1, voxel_id, 5, ao_id[3], flip_id)
 
-                    if flip_id:
-                        index = add_data(vertex_data, index, v3, v1, v0, v3, v2, v1)
-                    else:
-                        index = add_data(vertex_data, index, v0, v2, v1, v0, v3, v2)
+                    if voxel_id == 16:  # Water - transparent
+                        if flip_id:
+                            transparent_index = add_data(transparent_data, transparent_index, v3, v1, v0, v3, v2, v1)
+                        else:
+                            transparent_index = add_data(transparent_data, transparent_index, v0, v2, v1, v0, v3, v2)
+                    else:  # Solid blocks
+                        if flip_id:
+                            solid_index = add_data(solid_data, solid_index, v3, v1, v0, v3, v2, v1)
+                        else:
+                            solid_index = add_data(solid_data, solid_index, v0, v2, v1, v0, v3, v2)
 
-    return vertex_data[:index + 1]
+    return solid_data[:solid_index + 1], transparent_data[:transparent_index + 1]
 

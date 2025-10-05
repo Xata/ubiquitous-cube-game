@@ -25,7 +25,10 @@ void main() {
     face_uv.x = uv.x / 3.0 - min(face_id, 2) / 3.0;
 
     // Sample voxel texture from the texture array
-    vec3 tex_col = texture(u_texture_array_0, vec3(face_uv, voxel_id)).rgb;
+    vec4 tex_sample = texture(u_texture_array_0, vec3(face_uv, voxel_id));
+    vec3 tex_col = tex_sample.rgb;
+    float alpha = tex_sample.a;
+
     tex_col = pow(tex_col, gamma); // Apply gamma correction
 
     // Apply shading to the texture color
@@ -33,11 +36,27 @@ void main() {
 
     // Fog effect calculation
     float fog_dist = gl_FragCoord.z / gl_FragCoord.w; // Calculate distance from the camera
+
+    // Check if this is a water block (voxel_id == 16)
+    if (voxel_id == 16) {
+        alpha = 0.65; // Semi-transparent water
+
+        // Water color - murky blue
+        vec3 water_color = vec3(0.1, 0.25, 0.45); // Murky blue
+
+        // Water fog to obscure geometry behind water
+        float water_fog = 1.0 - exp2(-0.15 * fog_dist);
+        tex_col = mix(tex_col, water_color, water_fog * 0.85);
+
+        // Apply blue tint for water appearance
+        tex_col *= vec3(0.65, 0.8, 1.0);
+    }
+
     tex_col = mix(tex_col, bg_color, (1.0 - exp2(-0.00001 * fog_dist * fog_dist))); // Apply fog
 
     // Inverse gamma correction for final color output
     tex_col = pow(tex_col, inv_gamma);
 
-    // Set final color with fog effect
-    fogColor = vec4(tex_col, 1);
+    // Set final color with fog effect and alpha
+    fogColor = vec4(tex_col, alpha);
 }

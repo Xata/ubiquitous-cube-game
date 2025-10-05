@@ -61,11 +61,19 @@ class Chunk:
 
     def render(self):
         """
-        Render the chunk as long as its not empty and its within the camera frustum.
+        Render solid geometry of the chunk.
         """
         if not self.is_empty and self.is_on__frustum(self):
             self.set_uniform()
             self.mesh.render()
+
+    def render_transparent(self):
+        """
+        Render transparent geometry (water) of the chunk.
+        """
+        if not self.is_empty and self.is_on__frustum(self):
+            self.set_uniform()
+            self.mesh.render_transparent()
 
     def build_voxels(self):
         """
