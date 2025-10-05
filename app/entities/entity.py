@@ -1,4 +1,3 @@
-# TODO: Implement entities
 # Entities that the player can interact with
 
 class Entity:

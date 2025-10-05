@@ -8,6 +8,7 @@ from app.blocks import block_type
 def get_height(x, z):
     """
     Generate height value for terrain generation at the given coordinates.
+    Creates Colorado mountain valley terrain - high valleys with dramatic cliff peaks.
 
     Args:
         x (float): X-coordinate of the point
@@ -17,32 +18,34 @@ def get_height(x, z):
         int: Height value at the specified coordinates
     """
 
-    # Amplitude
-    a1 = CENTER_Y
-    a2, a4, a8 = a1 * 0.5, a1 * 0.25, a1 * 0.125
+    # High elevation base (Colorado valleys are ~7500-8000ft)
+    base_height = 45.0
 
-    # Frequency
-    f1 = 0.005
-    f2, f4, f8 = f1 * 2, f1 * 4, f1 * 8
+    # Large scale mountains (creates major peaks and valleys)
+    # Low frequency = broad mountain ranges
+    large_mountains = noise2(x * 0.0025, z * 0.0025) * 30.0
+    base_height += large_mountains
 
-    # Adjust amplitude based on noise
-    if noise2(0.1 * x, 0.1 * z) < 0:
-        a1 /= 1.07
+    # Secondary mountain features (ridges and slopes)
+    medium_mountains = noise2(x * 0.006, z * 0.006) * 15.0
+    base_height += medium_mountains
 
-    # Initialize height
-    height = 0
+    # Tertiary features (smaller peaks and hills)
+    small_hills = noise2(x * 0.012, z * 0.012) * 8.0
+    base_height += small_hills
 
-    # Sum up noise contributions at different frequencies and amplitudes
-    height += noise2(x * f1, z * f1) * a1 + a1
-    height += noise2(x * f2, z * f2) * a2 - a2
-    height += noise2(x * f4, z * f4) * a4 + a4
-    height += noise2(x * f8, z * f8) * a8 - a8
+    # Fine detail (rocky texture, small variations)
+    detail = noise2(x * 0.04, z * 0.04) * 3.0
+    base_height += detail
 
-    # Ensure minimum height and offset
-    height = max(height,  int(noise2(x * f8, z * f8) + 2))
-    height += 20  # Set the minimum height of the terrain
+    # Dramatic cliffs - amplify high terrain to create vertical faces
+    cliff_noise = noise2(x * 0.008, z * 0.008)
+    if cliff_noise > 0.3:
+        # Square the multiplier to create steeper transitions (cliffs)
+        cliff_multiplier = (cliff_noise - 0.3) * (cliff_noise - 0.3) * 80.0
+        base_height += cliff_multiplier
 
-    return int(height)
+    return int(base_height)
 
 
 @njit

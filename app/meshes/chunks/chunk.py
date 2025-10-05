@@ -111,6 +111,7 @@ class Chunk:
         1. For each XZ column, calculate terrain height using noise
         2. Fill blocks below terrain height with stone/dirt/grass/etc
         3. Fill air gaps below WATER_LVL (32) with water blocks
+        4. Sky chunks only generate terrain if mountains reach that height
         """
 
         for x in range(CHUNK_SIZE):
