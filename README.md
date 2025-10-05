@@ -104,7 +104,7 @@ The current blocks that are placeable are:
 | RAW_TIN_BLOCK        | 13       |       
 | WOOD_BLOCK           | 14       |   
 | BASIC_CRAFTING_TABLE | 15       |
-| WATER                | 16.      |
+| WATER                | 16       |
 
 Generates a random world each time using ![OpenSimplex](https://github.com/lmas/opensimplex)
 
