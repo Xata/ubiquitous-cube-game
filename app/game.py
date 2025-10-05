@@ -10,6 +10,7 @@ from app.graphics.textures import Textures
 
 from app.players.player import Player
 from app.gui.gui_manager import GUIManager
+from app.game_mode import GameMode, GameModeManager
 
 
 class Game:
@@ -78,9 +79,11 @@ class Game:
         pygame.font.init()
         self.font = pygame.font.SysFont(name='arial', size=12)
 
-
         # Set pygame display surface
         self.display_surface = pygame.display.get_surface()
+
+        # Initialize game mode manager (start in DEBUG mode)
+        self.game_mode = GameModeManager(starting_mode=GameMode.DEBUG)
 
         self.textures = Textures(self)
         self.player = Player(self)

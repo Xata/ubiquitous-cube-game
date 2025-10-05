@@ -126,6 +126,9 @@ class Player(Camera):
             elif event.key == pygame.K_p:
                 voxel_handler = self.app.scene.world.voxel_handler
                 voxel_handler.switch_mode()
+            elif event.key == pygame.K_g:
+                # Toggle game mode (DEBUG <-> GAME)
+                self.app.game_mode.toggle_mode()
 
     def handle_mouse(self):
         """

@@ -102,6 +102,7 @@ The current controls are:
 | A | Move left |
 | D | Move right |
 | SPACE | Jump |
+| G | Toggle game mode (DEBUG ↔ GAME) |
 | Left Mouse Btn | Place/remove block (depends on mode) |
 | Right Mouse Btn | Switch mode (place/delete) |
 | Middle Mouse Btn | Pick block |
@@ -109,7 +110,11 @@ The current controls are:
 | P | Switch mode (place/delete) |
 | ESC | Exit |
 
-**Modes:**
+**Game Modes:**
+- **DEBUG mode**: Creative mode with flight, no restrictions (default)
+- **GAME mode**: Survival mode (coming soon - will have inventory, health, hunger)
+
+**Block Interaction Modes:**
 - **Delete mode**: Left-click removes blocks (red highlight)
 - **Place mode**: Left-click places selected block (ghost preview)
 
