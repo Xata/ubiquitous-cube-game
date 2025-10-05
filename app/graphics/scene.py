@@ -40,8 +40,3 @@ class Scene:
         """
         self.world.render()
         self.voxel_marker.render()
-
-        # Render block preview on top (disable depth test for UI overlay)
-        self.app.ctx.disable(moderngl.DEPTH_TEST)
-        self.block_preview.render()
-        self.app.ctx.enable(moderngl.DEPTH_TEST)

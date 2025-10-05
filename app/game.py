@@ -9,6 +9,7 @@ from app.graphics.scene import Scene
 from app.graphics.textures import Textures
 
 from app.players.player import Player
+from app.gui.gui_manager import GUIManager
 
 
 class Game:
@@ -87,6 +88,11 @@ class Game:
         self.scene = Scene(self)
         self.player.init_voxel_handler()
 
+        # Initialize GUI system
+        self.gui = GUIManager(self)
+        # Register block preview as a GUI widget
+        self.gui.add_widget('block_preview', self.scene.block_preview)
+
     def update(self):
         """
         Updates the game logic and components.
@@ -114,6 +120,9 @@ class Game:
 
         self.ctx.clear(color=BG_COLOR)
         self.scene.render()
+
+        # Render GUI elements (block preview, etc.)
+        self.gui.render()
 
         # Render debug info
         self.render_debug_info()
@@ -156,6 +165,9 @@ class Game:
             # Check for exiting the game
             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                 self.is_running = False
+
+            # Handle GUI events (toggling windows, etc.)
+            self.gui.handle_event(event)
 
             # Check for player events
             self.player.handle_event(event=event)
