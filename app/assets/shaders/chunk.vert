@@ -18,6 +18,7 @@ flat out int face_id; // ID of the voxel face
 out vec3 voxel_color; // Color of the voxel
 out vec2 uv; // UV coordinates of the fragment
 out float shading; // Shading intensity
+out vec3 frag_world_pos; // World position of fragment
 
 // Ambient occlusion values
 const float ao_values[4] = float[4](0.1, 0.25, 0.5, 1.0);
@@ -80,6 +81,9 @@ void main() {
 
     // Calculate shading intensity by multiplying face shading and AO values
     shading = face_shading[face_id] * ao_values[ao_id];
+
+    // Calculate world position
+    frag_world_pos = (m_model * vec4(in_position, 1.0)).xyz;
 
     // Transform vertex position to clip space
     gl_Position = m_proj * m_view * m_model * vec4(in_position, 1.0);

@@ -40,6 +40,7 @@ class ShaderProgram:
         self.chunk['m_model'].write(glm.mat4())
         self.chunk['u_texture_array_0'] = 1
         self.chunk['bg_color'].write(BG_COLOR)
+        self.chunk['u_camera_pos'].write(self.player.position)
 
         # Voxel marker uniforms
         self.voxel_marker['m_proj'].write(self.player.m_proj)
@@ -52,6 +53,7 @@ class ShaderProgram:
         Updates the shader programs with the player's view matrix.
         """
         self.chunk['m_view'].write(self.player.m_view)
+        self.chunk['u_camera_pos'].write(self.player.position)
         self.voxel_marker['m_view'].write(self.player.m_view)
 
     def get_program(self, shader_name):
