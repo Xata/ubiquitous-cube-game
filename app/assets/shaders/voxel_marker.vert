@@ -16,6 +16,8 @@ const vec3 marker_colors[2] = vec3[2](vec3(1, 0, 0), vec3(0, 0, 1));
 // Output variables
 out vec3 marker_color; // Color of the marker
 out vec2 uv; // Output texture coordinates
+flat out uint mode; // Pass mode to fragment shader
+flat out int face_id; // Face ID for texture atlas
 
 
 void main() {
@@ -24,6 +26,13 @@ void main() {
 
     // Select marker color based on mode_id
     marker_color = marker_colors[mode_id];
+
+    // Pass mode to fragment shader
+    mode = mode_id;
+
+    // Calculate face_id from vertex index (simple approximation)
+    // Each face has 6 vertices (2 triangles)
+    face_id = gl_VertexID / 6;
 
     // Transform vertex position into clip space
     gl_Position = m_proj * m_view * m_model * vec4((in_position - 0.5) * 1.01 + 0.5, 1.0);

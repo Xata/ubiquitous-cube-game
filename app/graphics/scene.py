@@ -1,5 +1,7 @@
+import moderngl
 from app.world_utils.world import World
 from .voxel_marker import VoxelMarker
+from .block_preview import BlockPreview
 
 
 class Scene:
@@ -22,6 +24,7 @@ class Scene:
         self.app = app
         self.world = World(self.app)
         self.voxel_marker = VoxelMarker(self.world.voxel_handler)
+        self.block_preview = BlockPreview(self.app)
 
     def update(self):
         """
@@ -29,6 +32,7 @@ class Scene:
         """
         self.world.update()
         self.voxel_marker.update()
+        self.block_preview.update()
 
     def render(self):
         """
@@ -36,3 +40,8 @@ class Scene:
         """
         self.world.render()
         self.voxel_marker.render()
+
+        # Render block preview on top (disable depth test for UI overlay)
+        self.app.ctx.disable(moderngl.DEPTH_TEST)
+        self.block_preview.render()
+        self.app.ctx.enable(moderngl.DEPTH_TEST)

@@ -46,6 +46,8 @@ class VoxelMarker:
 
         self.mesh.program['mode_id'] = self.handler.interaction_mode
         self.mesh.program['m_model'].write(self.get_model_matrix())
+        # Pass the selected voxel ID for ghost preview in place mode
+        self.mesh.program['selected_voxel_id'] = self.app.player.selected_voxel
 
     def get_model_matrix(self):
         """

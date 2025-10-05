@@ -31,8 +31,8 @@ class Player(Camera):
         self.app = app
         super().__init__(position, yaw , pitch)
 
-        # Init placement voxel
-        self.selected_voxel = 0
+        # Init placement voxel (start with SAND, skip VOID)
+        self.selected_voxel = 1
 
         # Player states
         self.is_jumping = False
@@ -84,23 +84,47 @@ class Player(Camera):
         if event.type == pygame.MOUSEBUTTONDOWN:
             voxel_handler = self.app.scene.world.voxel_handler
 
-            # Left mouse button
+            # Left mouse button - place/remove block
             if event.button == 1:
                 voxel_handler.set_voxel(self.selected_voxel)
                 print(self.selected_voxel)
 
-            # Middle mouse button
-            if event.button == 2:
+            # Mouse scroll up - next block
+            elif event.button == 4:
                 if self.selected_voxel < TOTAL_BLOCKS:
                     self.selected_voxel += 1
                 else:
-                    self.selected_voxel = 0
-                
-                # Print the selected block to the console
+                    self.selected_voxel = 1  # Skip VOID (0)
+                print(BLOCK_DICT.get(self.selected_voxel))
+
+            # Mouse scroll down - previous block
+            elif event.button == 5:
+                if self.selected_voxel > 1:  # Don't go to VOID (0)
+                    self.selected_voxel -= 1
+                else:
+                    self.selected_voxel = TOTAL_BLOCKS
                 print(BLOCK_DICT.get(self.selected_voxel))
 
             # Right mouse button
             if event.button == 3:
+                voxel_handler.switch_mode()
+
+        # Handle keyboard events for block selection
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_MINUS:
+                if self.selected_voxel > 1:  # Don't go to VOID (0)
+                    self.selected_voxel -= 1
+                else:
+                    self.selected_voxel = TOTAL_BLOCKS
+                print(BLOCK_DICT.get(self.selected_voxel))
+            elif event.key == pygame.K_EQUALS:  # Plus key (shift + equals)
+                if self.selected_voxel < TOTAL_BLOCKS:
+                    self.selected_voxel += 1
+                else:
+                    self.selected_voxel = 1  # Skip VOID (0)
+                print(BLOCK_DICT.get(self.selected_voxel))
+            elif event.key == pygame.K_p:
+                voxel_handler = self.app.scene.world.voxel_handler
                 voxel_handler.switch_mode()
 
     def handle_mouse(self):
@@ -137,22 +161,6 @@ class Player(Camera):
         # Jump
         if key_state[pygame.K_SPACE] and self.on_ground:
             self.jump()
-
-        # Block selection
-        if key_state[pygame.K_MINUS]:
-            if self.selected_voxel > 0:
-                self.selected_voxel -= 1
-            else:
-                self.selected_voxel = TOTAL_BLOCKS
-            print(BLOCK_DICT.get(self.selected_voxel))
-        elif key_state[pygame.K_PLUS]:
-            if self.selected_voxel < TOTAL_BLOCKS:
-                self.selected_voxel += 1
-            else:
-                self.selected_voxel = 0
-            print(BLOCK_DICT.get(self.selected_voxel))
-        elif key_state[pygame.K_p]:
-            voxel_handler.switch_mode()
 
     def move_forward_horizontal(self, velocity):
         """Move forward but only on horizontal plane (no vertical component)."""

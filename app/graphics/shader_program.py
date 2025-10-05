@@ -26,6 +26,7 @@ class ShaderProgram:
         # Load shader programs
         self.chunk = self.get_program(shader_name='chunk')
         self.voxel_marker = self.get_program(shader_name='voxel_marker')
+        self.block_preview = self.get_program(shader_name='block_preview')
 
         self.set_uniforms_on_init()
 
@@ -44,6 +45,7 @@ class ShaderProgram:
         self.voxel_marker['m_proj'].write(self.player.m_proj)
         self.voxel_marker['m_model'].write(glm.mat4())
         self.voxel_marker['u_texture_0'] = 0
+        self.voxel_marker['u_texture_array_0'] = 1  # Use same texture array as chunks
 
     def update(self):
         """

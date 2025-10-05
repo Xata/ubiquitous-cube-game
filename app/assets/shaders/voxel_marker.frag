@@ -6,18 +6,42 @@ layout (location = 0) out vec4 fragColor;
 // Input variables from vertex shader
 in vec3 marker_color;
 in vec2 uv;
+flat in uint mode;
+flat in int face_id;
 
-// Uniform texture sampler
-uniform sampler2D u_texture_0; // Texture sampler
+// Uniform texture samplers
+uniform sampler2D u_texture_0; // Old texture for delete mode
+uniform sampler2DArray u_texture_array_0; // Texture array for place mode
+uniform int selected_voxel_id; // Currently selected block
+
+// Gamma correction
+const vec3 gamma = vec3(2.0);
+const vec3 inv_gamma = 1.0 / gamma;
 
 void main() {
-    // Sample texture using UV coordinates
-    fragColor = texture(u_texture_0, uv);
+    if (mode == 0u) {
+        // Delete mode: Red tint overlay
+        vec4 tex_color = texture(u_texture_0, uv);
+        fragColor.rgb = mix(tex_color.rgb, vec3(1.0, 0.0, 0.0), 0.4);  // 40% red tint
+        fragColor.a = 0.8;  // Semi-transparent
+    } else {
+        // Place mode: Ghost preview of selected block
+        // Adjust UV for texture atlas (same as chunk shader)
+        vec2 face_uv = uv;
+        face_uv.x = uv.x / 3.0 - min(face_id, 2) / 3.0;
 
-    // Add marker color to the sampled texture color
-    fragColor.rgb += marker_color;
+        // Sample from texture array
+        vec4 tex_sample = texture(u_texture_array_0, vec3(face_uv, selected_voxel_id));
+        vec3 tex_col = tex_sample.rgb;
 
-    // Determine fragment alpha value
-    // If the sum of red and blue components of the resulting color exceeds 1, set alpha to 0, otherwise set it to 1
-    fragColor.a = (fragColor.r + fragColor.b > 1.0) ? 0.0 : 1.0;
+        // Apply gamma correction
+        tex_col = pow(tex_col, gamma);
+
+        // Inverse gamma correction
+        tex_col = pow(tex_col, inv_gamma);
+
+        // Ghost effect - semi-transparent with slight brightness
+        fragColor.rgb = tex_col * 1.2;  // Slight brightness boost
+        fragColor.a = 0.5;  // Semi-transparent ghost
+    }
 }// End of void main()
