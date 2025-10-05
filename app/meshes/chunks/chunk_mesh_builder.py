@@ -3,14 +3,13 @@ from numba import uint8
 
 
 @njit
-def get_ambient_occlusion_value(local_pos, world_pos, world_voxels, plane):
+def get_ambient_occlusion_value(local_pos, chunk_voxels, plane):
     """
     Calculates the ambient occlusion value for a given voxel position.
 
     Args:
         local_pos (tuple): Local position of the voxel within the chunk
-        world_pos (tuple): World position of the voxel
-        world_voxels (numpy.array): Array containing voxel data for the entire world
+        chunk_voxels (numpy.array): Array containing voxel data for the current chunk
         plane (str): Orientation plane of the voxel ('X', 'Y', or 'Z')
 
     Returns:
@@ -18,38 +17,37 @@ def get_ambient_occlusion_value(local_pos, world_pos, world_voxels, plane):
     """
 
     x, y, z = local_pos
-    wx, wy, wz = world_pos
 
     if plane == 'Y':
-        a = is_void((x, y, z - 1), (wx, wy, wz - 1), world_voxels)
-        b = is_void((x - 1, y, z - 1), (wx - 1, wy, wz - 1), world_voxels)
-        c = is_void((x - 1, y, z), (wx - 1, wy, wz), world_voxels)
-        d = is_void((x - 1, y, z + 1), (wx - 1, wy, wz + 1), world_voxels)
-        e = is_void((x, y, z + 1), (wx, wy, wz + 1), world_voxels)
-        f = is_void((x + 1, y, z + 1), (wx + 1, wy, wz + 1), world_voxels)
-        g = is_void((x + 1, y, z), (wx + 1, wy, wz), world_voxels)
-        h = is_void((x + 1, y, z - 1), (wx + 1, wy, wz - 1), world_voxels)
+        a = is_void((x, y, z - 1), chunk_voxels)
+        b = is_void((x - 1, y, z - 1), chunk_voxels)
+        c = is_void((x - 1, y, z), chunk_voxels)
+        d = is_void((x - 1, y, z + 1), chunk_voxels)
+        e = is_void((x, y, z + 1), chunk_voxels)
+        f = is_void((x + 1, y, z + 1), chunk_voxels)
+        g = is_void((x + 1, y, z), chunk_voxels)
+        h = is_void((x + 1, y, z - 1), chunk_voxels)
 
     elif plane == 'X':
-        a = is_void((x, y, z - 1), (wx, wy, wz - 1), world_voxels)
-        b = is_void((x, y - 1, z - 1), (wx, wy - 1, wz - 1), world_voxels)
-        c = is_void((x, y - 1, z), (wx, wy - 1, wz), world_voxels)
-        d = is_void((x, y - 1, z + 1), (wx, wy - 1, wz + 1), world_voxels)
-        e = is_void((x, y, z + 1), (wx, wy, wz + 1), world_voxels)
-        f = is_void((x, y + 1, z + 1), (wx, wy + 1, wz + 1), world_voxels)
-        g = is_void((x, y + 1, z), (wx, wy + 1, wz), world_voxels)
-        h = a = is_void((x, y + 1, z - 1), (wx, wy + 1, wz - 1), world_voxels)
+        a = is_void((x, y, z - 1), chunk_voxels)
+        b = is_void((x, y - 1, z - 1), chunk_voxels)
+        c = is_void((x, y - 1, z), chunk_voxels)
+        d = is_void((x, y - 1, z + 1), chunk_voxels)
+        e = is_void((x, y, z + 1), chunk_voxels)
+        f = is_void((x, y + 1, z + 1), chunk_voxels)
+        g = is_void((x, y + 1, z), chunk_voxels)
+        h = a = is_void((x, y + 1, z - 1), chunk_voxels)
 
     # Z plane
     else:
-        a = is_void((x - 1, y, z), (wx - 1, wy, wz), world_voxels)
-        b = is_void((x - 1, y - 1, z), (wx - 1, wy - 1, wz), world_voxels)
-        c = is_void((x, y - 1, z), (wx, wy - 1, wz), world_voxels)
-        d = is_void((x + 1, y - 1, z), (wx + 1, wy - 1, wz), world_voxels)
-        e = is_void((x + 1, y, z), (wx + 1, wy, wz), world_voxels)
-        f = is_void((x + 1, y + 1, z), (wx + 1, wy + 1, wz), world_voxels)
-        g = is_void((x, y + 1, z), (wx, wy + 1, wz), world_voxels)
-        h = is_void((x - 1, y + 1, z), (wx - 1, wy + 1, wz), world_voxels)
+        a = is_void((x - 1, y, z), chunk_voxels)
+        b = is_void((x - 1, y - 1, z), chunk_voxels)
+        c = is_void((x, y - 1, z), chunk_voxels)
+        d = is_void((x + 1, y - 1, z), chunk_voxels)
+        e = is_void((x + 1, y, z), chunk_voxels)
+        f = is_void((x + 1, y + 1, z), chunk_voxels)
+        g = is_void((x, y + 1, z), chunk_voxels)
+        h = is_void((x - 1, y + 1, z), chunk_voxels)
 
     ambient_occlusion_value = (a + b + c), (g + h + a), (e + f + g), (c + d + e)
     return ambient_occlusion_value
@@ -106,72 +104,41 @@ def pack_data(x, y, z, voxel_id, face_id, ao_id, flip_id):
     return packed_data
 
 @njit
-def get_chunk_index(world_voxel_pos):
+def get_voxel_id_at(local_voxel_pos, chunk_voxels):
     """
-    Calculates the index of the chunk containing a given world voxel position.
-
-    Args:
-        world_voxel_pos (tuple): World position of the voxel
-
-    Returns:
-        int: Index of the chunk containing the voxel
-    """
-    wx, wy, wz = world_voxel_pos
-    cx = wx // CHUNK_SIZE
-    cy = wy // CHUNK_SIZE
-    cz = wz // CHUNK_SIZE
-    if not (0 <= cx < WORLD_WIDTH and 0 <= cy < WORLD_HEIGHT and 0 <= cz < WORLD_DEPTH):
-        return -1
-
-    index = cx + WORLD_WIDTH * cz + WORLD_AREA * cy
-    return index
-
-
-@njit
-def get_voxel_id_at(local_voxel_pos, world_voxel_pos, world_voxels):
-    """
-    Gets the voxel ID at a given position.
+    Gets the voxel ID at a given local position within the current chunk.
 
     Args:
         local_voxel_pos (tuple): Local position of the voxel within its chunk
-        world_voxel_pos (tuple): World position of the voxel
-        world_voxels (numpy.array): Array containing voxel data for the entire world
+        chunk_voxels (numpy.array): Array containing voxel data for the current chunk
 
     Returns:
         int: Voxel ID at the position, or 0 if out of bounds
     """
-
-    chunk_index = get_chunk_index(world_voxel_pos)
-    if chunk_index == -1:
-        return 0
-    chunk_voxels = world_voxels[chunk_index]
-
     x, y, z = local_voxel_pos
-    voxel_index = x % CHUNK_SIZE + z % CHUNK_SIZE * CHUNK_SIZE + y % CHUNK_SIZE * CHUNK_AREA
 
+    # Return 0 (void) for positions outside chunk bounds
+    if not (0 <= x < CHUNK_SIZE and 0 <= y < CHUNK_SIZE and 0 <= z < CHUNK_SIZE):
+        return 0
+
+    voxel_index = x + z * CHUNK_SIZE + y * CHUNK_AREA
     return chunk_voxels[voxel_index]
 
 @njit
-def is_void(local_voxel_pos, world_voxel_pos, world_voxels):
+def is_void(local_voxel_pos, chunk_voxels):
     """
-    Checks if a voxel position is empty (void) or transparent within the world.
+    Checks if a voxel position is empty (void) within the current chunk.
+    Positions outside the chunk are treated as void.
 
     Args:
         local_voxel_pos (tuple): Local position of the voxel within its chunk
-        world_voxel_pos (tuple): World position of the voxel
-        world_voxels (numpy.array): Array containing voxel data for the entire world
+        chunk_voxels (numpy.array): Array containing voxel data for the current chunk
 
     Returns:
-        bool: True if the voxel position is empty or transparent, False otherwise
+        bool: True if the voxel position is empty or out of bounds, False otherwise
     """
-
-    voxel_id = get_voxel_id_at(local_voxel_pos, world_voxel_pos, world_voxels)
-
-    # Empty voxels are void
-    if voxel_id == 0:
-        return True
-    else:
-        return False
+    voxel_id = get_voxel_id_at(local_voxel_pos, chunk_voxels)
+    return voxel_id == 0
 
 @njit
 def should_render_face(current_voxel_id, neighbor_voxel_id):
@@ -232,7 +199,7 @@ def add_data(vertex_data, index, *vertices):
 
 
 @njit  # Numba JIT - CRITICAL for performance! This function is HOT PATH
-def build_chunk_mesh(chunk_voxels, format_size, chunk_pos, world_voxels):
+def build_chunk_mesh(chunk_voxels, format_size, chunk_pos):
     """
     Builds optimized mesh for a 32x32x32 chunk using greedy meshing.
 
@@ -243,7 +210,6 @@ def build_chunk_mesh(chunk_voxels, format_size, chunk_pos, world_voxels):
         chunk_voxels: This chunk's voxel data (32*32*32 = 32768 uint8s)
         format_size: Vertex attribute count (always 1 - we use packed data)
         chunk_pos: (cx, cy, cz) chunk position in world
-        world_voxels: ALL chunks' voxel data (for checking neighbors)
 
     Returns:
         (solid_mesh, transparent_mesh): Two uint32 arrays of packed vertices
@@ -277,10 +243,10 @@ def build_chunk_mesh(chunk_voxels, format_size, chunk_pos, world_voxels):
                 wz = z + cz * CHUNK_SIZE
 
                 # Top Face
-                neighbor_id = get_voxel_id_at((x, y + 1, z), (wx, wy + 1, wz), world_voxels)
+                neighbor_id = get_voxel_id_at((x, y + 1, z), chunk_voxels)
                 if should_render_face(voxel_id, neighbor_id):
                     # Get ambient occlusion values
-                    ao_id = get_ambient_occlusion_value((x, y + 1, z), (wx, wy + 1, wz), world_voxels, plane='Y')
+                    ao_id = get_ambient_occlusion_value((x, y + 1, z), chunk_voxels, plane='Y')
 
                     # Fix anisotropy by choosing a consistent orientation for vertices
                     flip_id = ao_id[1] + ao_id[3] > ao_id[0] + ao_id[2]
@@ -303,10 +269,10 @@ def build_chunk_mesh(chunk_voxels, format_size, chunk_pos, world_voxels):
                             solid_index = add_data(solid_data, solid_index, v0, v3, v2, v0, v2, v1)
 
                 # Bottom Face
-                neighbor_id = get_voxel_id_at((x, y - 1, z), (wx, wy - 1, wz), world_voxels)
+                neighbor_id = get_voxel_id_at((x, y - 1, z), chunk_voxels)
                 if should_render_face(voxel_id, neighbor_id):
                     # Get ambient occlusion values
-                    ao_id = get_ambient_occlusion_value((x, y - 1, z), (wx, wy - 1, wz), world_voxels, plane='Y')
+                    ao_id = get_ambient_occlusion_value((x, y - 1, z), chunk_voxels, plane='Y')
 
                     flip_id = ao_id[1] + ao_id[3] > ao_id[0] + ao_id[2]
 
@@ -327,9 +293,9 @@ def build_chunk_mesh(chunk_voxels, format_size, chunk_pos, world_voxels):
                             solid_index = add_data(solid_data, solid_index, v0, v2, v3, v0, v1, v2)
 
                 # Right Face
-                neighbor_id = get_voxel_id_at((x + 1, y, z), (wx + 1, wy, wz), world_voxels)
+                neighbor_id = get_voxel_id_at((x + 1, y, z), chunk_voxels)
                 if should_render_face(voxel_id, neighbor_id):
-                    ao_id = get_ambient_occlusion_value((x + 1, y, z), (wx + 1, wy, wz), world_voxels, plane='X')
+                    ao_id = get_ambient_occlusion_value((x + 1, y, z), chunk_voxels, plane='X')
 
                     flip_id = ao_id[1] + ao_id[3] > ao_id[0] + ao_id[2]
 
@@ -350,9 +316,9 @@ def build_chunk_mesh(chunk_voxels, format_size, chunk_pos, world_voxels):
                             solid_index = add_data(solid_data, solid_index, v0, v1, v2, v0, v2, v3)
 
                 # Left Face
-                neighbor_id = get_voxel_id_at((x - 1, y, z), (wx - 1, wy, wz), world_voxels)
+                neighbor_id = get_voxel_id_at((x - 1, y, z), chunk_voxels)
                 if should_render_face(voxel_id, neighbor_id):
-                    ao_id = get_ambient_occlusion_value((x - 1, y, z), (wx - 1, wy, wz), world_voxels, plane='X')
+                    ao_id = get_ambient_occlusion_value((x - 1, y, z), chunk_voxels, plane='X')
 
                     flip_id = ao_id[1] + ao_id[3] > ao_id[0] + ao_id[2]
 
@@ -373,9 +339,9 @@ def build_chunk_mesh(chunk_voxels, format_size, chunk_pos, world_voxels):
                             solid_index = add_data(solid_data, solid_index, v0, v2, v1, v0, v3, v2)
 
                 # Back Face
-                neighbor_id = get_voxel_id_at((x, y, z - 1), (wx, wy, wz - 1), world_voxels)
+                neighbor_id = get_voxel_id_at((x, y, z - 1), chunk_voxels)
                 if should_render_face(voxel_id, neighbor_id):
-                    ao_id = get_ambient_occlusion_value((x, y, z - 1), (wx, wy, wz - 1), world_voxels, plane='Z')
+                    ao_id = get_ambient_occlusion_value((x, y, z - 1), chunk_voxels, plane='Z')
 
                     flip_id = ao_id[1] + ao_id[3] > ao_id[0] + ao_id[2]
 
@@ -396,9 +362,9 @@ def build_chunk_mesh(chunk_voxels, format_size, chunk_pos, world_voxels):
                             solid_index = add_data(solid_data, solid_index, v0, v1, v2, v0, v2, v3)
 
                 # Front Face
-                neighbor_id = get_voxel_id_at((x, y, z + 1), (wx, wy, wz + 1), world_voxels)
+                neighbor_id = get_voxel_id_at((x, y, z + 1), chunk_voxels)
                 if should_render_face(voxel_id, neighbor_id):
-                    ao_id = get_ambient_occlusion_value((x, y, z + 1), (wx, wy, wz + 1), world_voxels, plane='Z')
+                    ao_id = get_ambient_occlusion_value((x, y, z + 1), chunk_voxels, plane='Z')
 
                     flip_id = ao_id[1] + ao_id[3] > ao_id[0] + ao_id[2]
 

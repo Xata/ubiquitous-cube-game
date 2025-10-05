@@ -5,12 +5,13 @@ from app.graphics.voxel_handler import VoxelHandler
 class World:
     """
     Represents the world containing chunks and manages their generation and rendering.
+    Supports infinite terrain generation by loading/unloading chunks based on player position.
 
     Attributes:
         app: Main game instance
-        chunks (list): List containing chunk instances representing the world
-        voxels (numpy.ndarray): 2D array storing voxel data for each chunk
+        chunks (dict): Dictionary mapping chunk positions (x,y,z) to Chunk instances
         voxel_handler (VoxelHandler): Instance of VoxelHandler for handling voxel interactions
+        render_distance: How many chunks to render around the player
     """
 
     def __init__(self, app):
@@ -22,43 +23,93 @@ class World:
         """
 
         self.app = app
-        self.chunks = [None for _ in range(WORLD_VOL)]
-        self.voxels = numpy.empty([WORLD_VOL, CHUNK_VOL], dtype='uint8')
-        self.build_chunks()
-        self.build_chunk_mesh()
+        self.chunks = {}  # Dictionary for infinite world
         self.voxel_handler = VoxelHandler(self)
+        self.render_distance = 8  # Load chunks within 8 chunks of player
+        self.last_player_chunk = None
 
-    def build_chunks(self):
-        """
-        Generates chunk instances and populates the world with them.
-        """
+        # Build initial chunks around spawn
+        self.build_initial_chunks()
 
-        for x in range(WORLD_WIDTH):
+    def build_initial_chunks(self):
+        """
+        Generates initial chunks around spawn position.
+        """
+        spawn_chunk_x = int(PLAYER_POS.x // CHUNK_SIZE)
+        spawn_chunk_z = int(PLAYER_POS.z // CHUNK_SIZE)
+
+        for x in range(spawn_chunk_x - self.render_distance, spawn_chunk_x + self.render_distance):
             for y in range(WORLD_HEIGHT):
-                for z in range(WORLD_DEPTH):
-                    chunk = Chunk(self, position=(x, y, z))
+                for z in range(spawn_chunk_z - self.render_distance, spawn_chunk_z + self.render_distance):
+                    self.load_chunk(x, y, z)
 
-                    chunk_index = x + WORLD_WIDTH * z + WORLD_AREA * y
-                    self.chunks[chunk_index] = chunk
-
-                    # Put the chunk voxels into a separate array
-                    self.voxels[chunk_index] = chunk.build_voxels()
-
-                    # Get pointer to voxels
-                    chunk.voxels = self.voxels[chunk_index]
-
-    def build_chunk_mesh(self):
+    def load_chunk(self, cx, cy, cz):
         """
-        Builds meshes for all chunks in the world.
+        Loads a single chunk at the given chunk coordinates.
+
+        Args:
+            cx, cy, cz: Chunk coordinates
         """
-        for chunk in self.chunks:
+        chunk_pos = (cx, cy, cz)
+
+        if chunk_pos not in self.chunks:
+            chunk = Chunk(self, position=chunk_pos)
+            chunk.voxels = chunk.build_voxels()
             chunk.build_mesh()
+            self.chunks[chunk_pos] = chunk
+
+    def unload_chunk(self, cx, cy, cz):
+        """
+        Unloads a chunk at the given chunk coordinates.
+
+        Args:
+            cx, cy, cz: Chunk coordinates
+        """
+        chunk_pos = (cx, cy, cz)
+        if chunk_pos in self.chunks:
+            del self.chunks[chunk_pos]
 
     def update(self):
         """
-        Updates the voxel handler for interaction processing.
+        Updates the voxel handler and manages chunk loading/unloading.
         """
         self.voxel_handler.update()
+        self.update_chunks()
+
+    def update_chunks(self):
+        """
+        Loads and unloads chunks based on player position.
+        """
+        player_pos = self.app.player.position
+        player_chunk_x = int(player_pos.x // CHUNK_SIZE)
+        player_chunk_z = int(player_pos.z // CHUNK_SIZE)
+        player_chunk = (player_chunk_x, player_chunk_z)
+
+        # Only update if player moved to a new chunk
+        if player_chunk == self.last_player_chunk:
+            return
+
+        self.last_player_chunk = player_chunk
+
+        # Load new chunks in render distance
+        for x in range(player_chunk_x - self.render_distance, player_chunk_x + self.render_distance + 1):
+            for y in range(WORLD_HEIGHT):
+                for z in range(player_chunk_z - self.render_distance, player_chunk_z + self.render_distance + 1):
+                    # Only load if within circular render distance
+                    dist = ((x - player_chunk_x) ** 2 + (z - player_chunk_z) ** 2) ** 0.5
+                    if dist <= self.render_distance:
+                        self.load_chunk(x, y, z)
+
+        # Unload distant chunks
+        chunks_to_unload = []
+        for chunk_pos in self.chunks.keys():
+            cx, cy, cz = chunk_pos
+            dist = ((cx - player_chunk_x) ** 2 + (cz - player_chunk_z) ** 2) ** 0.5
+            if dist > self.render_distance + 2:  # Keep 2 extra chunks as buffer
+                chunks_to_unload.append(chunk_pos)
+
+        for chunk_pos in chunks_to_unload:
+            self.unload_chunk(*chunk_pos)
 
     def render(self):
         """
@@ -70,12 +121,12 @@ class World:
         - Solid blocks render first (with depth write), then water (depth test only)
         """
         # PASS 1: Render all solid blocks (writes to depth buffer)
-        for chunk in self.chunks:
+        for chunk in self.chunks.values():
             chunk.render()
 
         # PASS 2: Render all transparent blocks (reads depth buffer, doesn't write to it)
         self.app.ctx.depth_mask = False  # Disable depth writes
-        for chunk in self.chunks:
+        for chunk in self.chunks.values():
             chunk.render_transparent()
         self.app.ctx.depth_mask = True  # Re-enable depth writes
 
@@ -87,15 +138,19 @@ class World:
             voxel_world_pos (tuple): World position (x, y, z)
 
         Returns:
-            int: Voxel ID at the position, or 0 if out of bounds
+            int: Voxel ID at the position, or 0 if out of bounds or chunk not loaded
         """
         cx, cy, cz = voxel_world_pos // CHUNK_SIZE
 
-        if 0 <= cx < WORLD_WIDTH and 0 <= cy < WORLD_HEIGHT and 0 <= cz < WORLD_DEPTH:
-            chunk_index = cx + WORLD_WIDTH * cz + WORLD_AREA * cy
+        # Check Y bounds only (infinite in X and Z)
+        if not (0 <= cy < WORLD_HEIGHT):
+            return 0
+
+        chunk_pos = (int(cx), int(cy), int(cz))
+        if chunk_pos in self.chunks:
             lx, ly, lz = voxel_world_pos % CHUNK_SIZE
-            voxel_index = lx + CHUNK_SIZE * lz + CHUNK_AREA * ly
-            return self.voxels[chunk_index][voxel_index]
+            voxel_index = int(lx) + CHUNK_SIZE * int(lz) + CHUNK_AREA * int(ly)
+            return self.chunks[chunk_pos].voxels[voxel_index]
         return 0
 
     def is_solid_voxel(self, position):

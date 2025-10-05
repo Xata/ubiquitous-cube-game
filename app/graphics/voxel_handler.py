@@ -1,5 +1,4 @@
 from app.settings import *
-from app.meshes.chunks.chunk_mesh_builder import get_chunk_index
 from app.blocks.block_type import BLOCK_DICT
 
 
@@ -59,10 +58,12 @@ class VoxelHandler:
         """
         Rebuilds the mesh of an adjacent chunk.
         """
+        wx, wy, wz = adj_voxel_pos
+        cx, cy, cz = wx // CHUNK_SIZE, wy // CHUNK_SIZE, wz // CHUNK_SIZE
+        chunk_pos = (int(cx), int(cy), int(cz))
 
-        index = get_chunk_index(adj_voxel_pos)
-        if index != -1:
-            self.chunks[index].mesh.rebuild()
+        if chunk_pos in self.chunks:
+            self.chunks[chunk_pos].mesh.rebuild()
 
     def rebuild_adjacent_chunks(self):
         """
@@ -261,17 +262,21 @@ class VoxelHandler:
         Returns:
             Tuple: A tuple containing the voxel ID, voxel index, voxel local position, and the chunk object
         """
-
         cx, cy, cz = chunk_pos = voxel_world_position / CHUNK_SIZE
 
-        if 0 <= cx < WORLD_WIDTH and 0 <= cy < WORLD_HEIGHT and 0 <= cz < WORLD_DEPTH:
-            chunk_index = cx + WORLD_WIDTH * cz + WORLD_AREA * cy
-            chunk = self.chunks[chunk_index]
+        # Check Y bounds only (infinite in X and Z)
+        if not (0 <= cy < WORLD_HEIGHT):
+            return 0, 0, 0, 0
+
+        chunk_key = (int(cx), int(cy), int(cz))
+
+        if chunk_key in self.chunks:
+            chunk = self.chunks[chunk_key]
 
             # Local coordinates
             lx, ly, lz = voxel_local_position = voxel_world_position - chunk_pos * CHUNK_SIZE
 
-            voxel_index = lx + CHUNK_SIZE * lz + CHUNK_AREA * ly
+            voxel_index = int(lx) + CHUNK_SIZE * int(lz) + CHUNK_AREA * int(ly)
             voxel_id = chunk.voxels[voxel_index]
 
             return voxel_id, voxel_index, voxel_local_position, chunk
