@@ -103,6 +103,7 @@ The current blocks that are placeable are:
 | RAW_TIN_BLOCK        | 13       |       
 | WOOD_BLOCK           | 14       |   
 | BASIC_CRAFTING_TABLE | 15       |
+| WATER                | 16.      |
 
 Generates a random world each time using ![OpenSimplex](https://github.com/lmas/opensimplex)
 
@@ -117,6 +118,3 @@ The following was used to create the base demo:
 - ![ModernGL](https://moderngl.readthedocs.io/en/5.8.2/)
 - ![OpenSimplex](https://github.com/lmas/opensimplex)
 - ![Numba](https://numba.pydata.org/)
-- ![Coder Space's Creating a Voxel Engine Tutorial](https://www.youtube.com/watch?v=Ab8TOSFfNp4)
-- ![Alan Zucconi's How Minecraft ACTUALLY Works](https://www.youtube.com/watch?v=YyVAaJqYAfE&t=973s)
-- ![David Wolff's OpenGL 4 Shading Language Cookbook](https://www.amazon.com/OpenGL-Shading-Language-Cookbook-high-quality/dp/1789342252)

@@ -58,18 +58,18 @@ PLAYER_ROT_SPEED = 0.003
 PLAYER_POS = glm.vec3(CENTER_XZ, 75, CENTER_XZ)  # Spawn above typical terrain height
 MOUSE_SENSITIVITY = 0.002
 
-# Physics (tuned for delta_time in milliseconds, Minecraft-like)
-GRAVITY = 0.00004  # Acceleration per millisecond (stronger gravity)
-JUMP_STRENGTH = 0.009  # Initial upward velocity (lower jump)
+# Physics 
+GRAVITY = 0.00004  # Acceleration per millisecond 
+JUMP_STRENGTH = 0.009  # Initial upward velocity 
 TERMINAL_VELOCITY = 0.05  # Maximum fall speed
 PLAYER_HEIGHT = 1.8
 PLAYER_WIDTH = 0.6
 
 # Water physics
-WATER_DRAG = 0.5  # Movement speed multiplier in water (Minecraft-like resistance)
-WATER_GRAVITY = 0.000005  # Very reduced gravity in water (strong buoyancy)
+WATER_DRAG = 0.5  # Movement speed multiplier in water
+WATER_GRAVITY = 0.000005  # Very reduced gravity in water
 WATER_TERMINAL_VELOCITY = 0.015  # Slower fall speed in water
-SWIM_SPEED = 0.006  # Vertical swim speed (spacebar in water)
+SWIM_SPEED = 0.006  # Vertical swim speed 
 
 # Terrain levels
 SNOW_LVL = 55
