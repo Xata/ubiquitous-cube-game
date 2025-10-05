@@ -212,7 +212,13 @@ class Player(Camera):
         print("Warning: No ground found, player will fall!")
 
     def apply_gravity(self):
-        """Applies gravity to the player's velocity."""
+        """
+        Applies gravity to player (Minecraft-style physics).
+
+        IMPORTANT: delta_time is in MILLISECONDS (not seconds)!
+        - GRAVITY is tuned for milliseconds: 0.00004 per ms
+        - TERMINAL_VELOCITY caps max fall speed: 0.05 units/ms
+        """
         if not self.on_ground:
             self.velocity_y -= GRAVITY * self.app.delta_time
             self.velocity_y = max(self.velocity_y, -TERMINAL_VELOCITY)

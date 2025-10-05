@@ -231,28 +231,33 @@ def add_data(vertex_data, index, *vertices):
     return index
 
 
-@njit
+@njit  # Numba JIT - CRITICAL for performance! This function is HOT PATH
 def build_chunk_mesh(chunk_voxels, format_size, chunk_pos, world_voxels):
     """
-    Builds the mesh data for a chunk based on its voxel data.
-    Returns separate arrays for solid and transparent geometry.
+    Builds optimized mesh for a 32x32x32 chunk using greedy meshing.
+
+    KEY OPTIMIZATION: Only render faces adjacent to air/transparent blocks (culling)
+    TWO-PASS RENDERING: Separates solid and transparent (water) geometry
 
     Args:
-        chunk_voxels (numpy.array): Voxel data for the chunk
-        format_size (int): Size of the format for vertex data
-        chunk_pos (tuple): Position of the chunk
-        world_voxels (numpy.array): Voxel data for the entire world
+        chunk_voxels: This chunk's voxel data (32*32*32 = 32768 uint8s)
+        format_size: Vertex attribute count (always 1 - we use packed data)
+        chunk_pos: (cx, cy, cz) chunk position in world
+        world_voxels: ALL chunks' voxel data (for checking neighbors)
 
     Returns:
-        tuple: (solid_mesh_data, transparent_mesh_data) - Two numpy arrays
+        (solid_mesh, transparent_mesh): Two uint32 arrays of packed vertices
+
+    VERTEX PACKING FORMAT (1 uint32 per vertex):
+    - 6 bits X, 6 bits Y, 6 bits Z (local position 0-31)
+    - 8 bits voxel_id (block type)
+    - 3 bits face_id (which face: 0=top, 1=bottom, 2-5=sides)
+    - 2 bits ao_id (ambient occlusion darkness level)
+    - 1 bit flip_id (fixes texture anisotropy artifacts)
     """
 
-    # ARRAY_SIZE = CHUNK_VOL * NUM_VOXEL_VERTICES * VERTEX_ATTRS
-    # Maximum number of visible vertices is 18 because each voxel is made up of two triangles
-    # The 18 could be called NUMBER_VOXEL_VERTICES
-    # Each vertex has at least 5 attributes (this is format_size)
-    # 1) x position 2) y position 3) z position 4) voxel_id 5) face_id
-    # Change dtype from uint32 to uint8 if using non-packed data!
+    # Preallocate worst-case arrays (if every voxel had 6 visible faces)
+    # 6 faces * 6 vertices per face * 32^3 voxels
     solid_data = numpy.empty(CHUNK_VOL * 18 * format_size, dtype='uint32')
     transparent_data = numpy.empty(CHUNK_VOL * 18 * format_size, dtype='uint32')
     solid_index = 0

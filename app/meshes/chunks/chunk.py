@@ -98,31 +98,38 @@ class Chunk:
         return voxels
 
     @staticmethod
-    @njit
+    @njit  # Numba JIT compilation for performance (REQUIRED - don't remove!)
     def generate_terrain(voxels, cx, cy, cz):
         """
-        Generates the terrain for the chunk.
+        Fills this chunk with terrain blocks using noise-based generation.
 
         Args:
-            voxels: Array representing the voxels inside the chunk
-            cx: X-coordinate of the chunk inside the world
-            cy: Y-coordinate of the chunk inside the world
-            cz: Z-coordinate of the chunk inside the world
+            voxels: Flat uint8 array to fill (size CHUNK_VOL = 32*32*32)
+            cx, cy, cz: Chunk position in world (chunk coords, not voxel coords)
+
+        HOW IT WORKS:
+        1. For each XZ column, calculate terrain height using noise
+        2. Fill blocks below terrain height with stone/dirt/grass/etc
+        3. Fill air gaps below WATER_LVL (32) with water blocks
         """
 
         for x in range(CHUNK_SIZE):
             for z in range(CHUNK_SIZE):
+                # Convert chunk-local coords to world coords
                 wx = x + cx
                 wz = z + cz
+
+                # Get terrain height for this column (from noise function)
                 world_height = terrain_gen.get_height(wx, wz)
-                local_height = int(min(world_height - cy, CHUNK_SIZE))
 
+                # Fill each Y level in this column
                 for y in range(CHUNK_SIZE):
-                    wy = y + cy
+                    wy = y + cy  # World Y coordinate
 
-                    # Generate terrain blocks
                     if wy < world_height:
+                        # Below terrain surface - place terrain blocks
+                        # (stone, dirt, grass, etc based on height and noise)
                         terrain_gen.set_voxel_id(voxels, x, y, z, wx, wy, wz, world_height)
-                    # Fill with water if above terrain and below water level
                     elif wy < WATER_LVL:
+                        # Above terrain but below sea level - fill with water
                         terrain_gen.set_water(voxels, x, y, z)

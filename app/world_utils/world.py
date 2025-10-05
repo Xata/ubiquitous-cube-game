@@ -62,17 +62,22 @@ class World:
 
     def render(self):
         """
-        Renders all chunks in the world in two passes: solid first, then transparent.
+        Renders all chunks using two-pass rendering for proper transparency.
+
+        WHY TWO PASSES?
+        - Transparent water needs depth testing but shouldn't write to depth buffer
+        - This prevents water from blocking geometry behind it incorrectly
+        - Solid blocks render first (with depth write), then water (depth test only)
         """
-        # First pass: Render all solid geometry with depth write enabled
+        # PASS 1: Render all solid blocks (writes to depth buffer)
         for chunk in self.chunks:
             chunk.render()
 
-        # Second pass: Render all transparent geometry with depth test but no depth write
-        self.app.ctx.depth_mask = False  # Disable depth writing for transparent pass
+        # PASS 2: Render all transparent blocks (reads depth buffer, doesn't write to it)
+        self.app.ctx.depth_mask = False  # Disable depth writes
         for chunk in self.chunks:
             chunk.render_transparent()
-        self.app.ctx.depth_mask = True  # Re-enable depth writing
+        self.app.ctx.depth_mask = True  # Re-enable depth writes
 
     def get_voxel_id(self, voxel_world_pos):
         """
@@ -95,18 +100,19 @@ class World:
 
     def is_solid_voxel(self, position):
         """
-        Checks if a voxel at a given position is solid (non-void and non-water).
+        Checks if a voxel blocks player movement (for collision detection).
 
         Args:
             position (glm.vec3): World position to check
 
         Returns:
-            bool: True if voxel is solid, False otherwise
+            bool: True if solid (blocks movement), False if passable
+
+        IMPORTANT: Water (ID 16) is NOT solid - player can move through it!
         """
-        # Use floor to handle negative positions correctly
-        voxel_pos = glm.ivec3(glm.floor(position))
+        voxel_pos = glm.ivec3(glm.floor(position))  # Use floor for negative coords
         voxel_id = self.get_voxel_id(voxel_pos)
-        # Solid means not void (0) and not water (16)
+        # Solid = any block except void (0) and water (16)
         return voxel_id != 0 and voxel_id != 16
 
     def is_water_voxel(self, position):
