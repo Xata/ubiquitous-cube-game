@@ -25,7 +25,7 @@ class World:
         self.app = app
         self.chunks = {}  # Dictionary for infinite world
         self.voxel_handler = VoxelHandler(self)
-        self.render_distance = 8  # Load chunks within 8 chunks of player
+        self.render_distance = 16  # Load chunks within 16 chunks of player (512 blocks)
         self.last_player_chunk = None
 
         # Build initial chunks around spawn

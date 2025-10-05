@@ -123,37 +123,55 @@ def set_voxel_id(voxels, x, y, z, wx, wy, wz, world_height):
 @njit()
 def place_tree(voxels, x, y, z, voxel_id):
     """
-    Generates a tree at the given location
+    Generates a tree at the given location with randomized height and canopy
     """
 
     rnd = random.random()
     if voxel_id != block_type.GRASS or rnd > TREE_PROBABILITY:
         return None
-    if y + TREE_HEIGHT >= CHUNK_SIZE:
+
+    # Randomize tree height (5-10 blocks tall)
+    tree_height = int(random.random() * 6) + 5
+    canopy_width = 2  # Fixed canopy width
+
+    # Check bounds
+    if y + tree_height >= CHUNK_SIZE:
         return None
-    if x - TREE_H_WIDTH < 0 or x + TREE_H_WIDTH >= CHUNK_SIZE:
+    if x - canopy_width < 0 or x + canopy_width >= CHUNK_SIZE:
         return None
-    if z - TREE_H_WIDTH < 0 or z + TREE_H_WIDTH >= CHUNK_SIZE:
+    if z - canopy_width < 0 or z + canopy_width >= CHUNK_SIZE:
         return None
 
     # Dirt under the tree
     voxels[get_index(x, y, z)] = block_type.DIRT
 
-    # Leaves
-    m = 0
-    for n, iy in enumerate(range(TREE_H_HEIGHT, TREE_HEIGHT - 1)):
-        k = iy % 2
-        rng = int(random.random() * 2)
-        for ix in range(-TREE_H_WIDTH + m, TREE_H_WIDTH - m * rng):
-            for iz in range(-TREE_H_WIDTH + m * rng, TREE_H_WIDTH - m):
-                if (ix + iz) % 4:
-                    voxels[get_index(x + ix + k, y + iy, z + iz + k)] = block_type.LEAVES
-        m += 1 if n > 0 else 3 if n > 1 else 0
+    # Build trunk
+    for trunk_y in range(1, tree_height - 2):
+        voxels[get_index(x, y + trunk_y, z)] = block_type.WOOD
 
-    # Tree trunk
-    for iy in range(1, TREE_HEIGHT - 2):
-        voxels[get_index(x, y + iy, z)] = block_type.WOOD
+    # Build canopy (rounded shape)
+    canopy_start = tree_height - 4
 
-    # Top
-    voxels[get_index(x, y + TREE_HEIGHT - 2, z)] = block_type.LEAVES
+    # Bottom layer - wide
+    for cx in range(-canopy_width, canopy_width + 1):
+        for cz in range(-canopy_width, canopy_width + 1):
+            # Skip corners for rounder shape
+            if abs(cx) == canopy_width and abs(cz) == canopy_width:
+                if random.random() > 0.3:  # 70% chance to skip corners
+                    continue
+            voxels[get_index(x + cx, y + canopy_start, z + cz)] = block_type.LEAVES
+
+    # Middle layer - medium
+    for cx in range(-1, 2):
+        for cz in range(-1, 2):
+            voxels[get_index(x + cx, y + canopy_start + 1, z + cz)] = block_type.LEAVES
+
+    # Top layer - small
+    for cx in range(-1, 2):
+        for cz in range(-1, 2):
+            if abs(cx) + abs(cz) <= 1:  # Cross pattern
+                voxels[get_index(x + cx, y + canopy_start + 2, z + cz)] = block_type.LEAVES
+
+    # Single block top
+    voxels[get_index(x, y + tree_height - 1, z)] = block_type.LEAVES
 

@@ -2,6 +2,7 @@ import moderngl
 from app.world_utils.world import World
 from .voxel_marker import VoxelMarker
 from .block_preview import BlockPreview
+from .sky import Sky
 
 
 class Scene:
@@ -10,6 +11,7 @@ class Scene:
 
     Attributes:
         app: The application object
+        sky: The sky renderer
         world: The world object containing the environment
         voxel_marker: The voxel marker object used for marking voxels
     """
@@ -22,6 +24,7 @@ class Scene:
             app: The game object
         """
         self.app = app
+        self.sky = Sky(self.app)
         self.world = World(self.app)
         self.voxel_marker = VoxelMarker(self.world.voxel_handler)
         self.block_preview = BlockPreview(self.app)
@@ -36,7 +39,8 @@ class Scene:
 
     def render(self):
         """
-        Renders the scene by rendering the world and voxel marker.
+        Renders the scene by rendering the sky, world, and voxel marker.
         """
+        self.sky.render()  # Render sky first (background)
         self.world.render()
         self.voxel_marker.render()

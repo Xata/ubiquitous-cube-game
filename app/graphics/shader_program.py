@@ -11,6 +11,8 @@ class ShaderProgram:
             player: The player object from the game
             chunk: The shader program for rendering chunks
             voxel_marker: The shader program for rendering voxel markers
+            block_preview: The shader program for rendering block previews
+            sky: The shader program for rendering the sky gradient
         """
     def __init__(self, app):
         """
@@ -27,6 +29,7 @@ class ShaderProgram:
         self.chunk = self.get_program(shader_name='chunk')
         self.voxel_marker = self.get_program(shader_name='voxel_marker')
         self.block_preview = self.get_program(shader_name='block_preview')
+        self.sky = self.get_program(shader_name='sky')
 
         self.set_uniforms_on_init()
 
