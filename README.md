@@ -14,7 +14,7 @@ A Minecraft-inspired voxel engine tech demo built with Python and modern OpenGL.
 
 ## Project Goal
 
-The goal of this project is to create a 3D voxel engine tech demo reminiscent of Minecraft, written in Python, that runs on Windows 11 and macOS. Features include infinite world generation, procedural terrain with Colorado-style mountain valleys, cave systems, ore generation, and realistic water rendering.
+The goal of this project is to create a 3D voxel engine tech demo reminiscent of Minecraft, written in Python, that runs on Windows 11 and macOS. Features include infinite world generation, procedural terrain with mountain valleys, cave systems, ore generation, and realistic water rendering.
 
 ## Installation
 
