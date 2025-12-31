@@ -24,7 +24,7 @@ GAME_TITLE = "Ubiquitous Cube Game"
 MAX_RAY_DIST = 6
 
 # Colors
-BG_COLOR = glm.vec3(0.58, 0.83, 0.99)
+BG_COLOR = glm.vec3(0.58, 0.83, 0.98)
 
 # Chunk
 CHUNK_SIZE = 32
@@ -83,6 +83,6 @@ WATER_LVL = 32  # Sea level - valleys below this fill with water
 TOTAL_BLOCKS = 16
 
 # Tree settings
-TREE_PROBABILITY = 0.02
+TREE_PROBABILITY = 0.025
 TREE_WIDTH, TREE_HEIGHT = 4, 8
 TREE_H_WIDTH, TREE_H_HEIGHT = TREE_WIDTH // 2, TREE_HEIGHT // 2
